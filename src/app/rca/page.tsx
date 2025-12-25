@@ -17,6 +17,7 @@ interface Attempt {
   problem_id: string;
   status: string;
   final_score: number | null;
+  created_at: string;
 }
 
 export default function RCAListingPage() {
@@ -27,52 +28,51 @@ export default function RCAListingPage() {
   useEffect(() => {
     async function fetchData() {
       setLoading(true);
-      
       try {
-        // 1. Fetch active problems
-        const { data: problemsData } = await supabase
-          .from('problems')
-          .select('*')
-          .eq('is_active', true);
-        
+        // 1. Fetch Problems
+        const { data: problemsData } = await supabase.from('problems').select('*').eq('is_active', true);
         if (problemsData) setProblems(problemsData);
 
         // 2. Fetch Attempts
-        // Note: If you just added created_at, this query will now succeed.
-        const { data: attemptsData, error: aError } = await supabase
+        const { data: attemptsData } = await supabase
           .from('attempts')
           .select('problem_id, status, final_score, created_at')
           .order('created_at', { ascending: false });
 
-        if (aError) {
-          console.error("Fetch Error:", aError.message);
-          return;
-        }
-
         if (attemptsData) {
           const attemptMap: Record<string, Attempt> = {};
           
-          // Logic: We want to show the 'evaluated' attempt as the primary status if it exists.
           attemptsData.forEach(att => {
-            const current = attemptMap[att.problem_id];
-            // If we don't have an entry yet, OR the new one is 'evaluated' 
-            // and the current one is not, update it.
-            if (!current || (current.status !== 'evaluated' && att.status === 'evaluated')) {
+            const existing = attemptMap[att.problem_id];
+            
+            // LOGIC: 
+            // 1. If we have nothing for this problem yet, take this one.
+            // 2. If the existing one is NOT 'evaluated' but this one IS, take this one.
+            // 3. If BOTH are 'evaluated', take the one with the newer 'created_at'.
+            if (!existing) {
               attemptMap[att.problem_id] = att;
+            } else if (existing.status !== 'evaluated' && att.status === 'evaluated') {
+              attemptMap[att.problem_id] = att;
+            } else if (existing.status === 'evaluated' && att.status === 'evaluated') {
+              // Compare timestamps to ensure the newest score wins
+              if (new Date(att.created_at) > new Date(existing.created_at)) {
+                attemptMap[att.problem_id] = att;
+              }
             }
           });
           
           setAttempts(attemptMap);
-          console.log("Dashboard Sync Successful:", attemptMap);
         }
       } catch (err) {
-        console.error("Dashboard Load Failure:", err);
+        console.error("Dashboard Sync Error:", err);
       } finally {
         setLoading(false);
       }
     }
     fetchData();
   }, []);
+
+
 
   return (
     <div className="min-h-screen bg-slate-50 p-8">
