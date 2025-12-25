@@ -36,8 +36,8 @@ export default function ProblemContextPage({ params }: { params: Promise<{ id: s
   }, [id]);
 
   const handleStart = () => {
-    // We will build the actual simulation page in the next step
-    alert("Simulation Ready. Next we build the Solving Engine!");
+    // Navigate to the solving engine page we just created
+    router.push(`/rca/${id}/solve`);
   };
 
   if (loading) return <div className="p-20 text-center text-slate-500">Loading Case...</div>;
@@ -77,13 +77,13 @@ export default function ProblemContextPage({ params }: { params: Promise<{ id: s
             </div>
             
             <div className="mt-10 flex gap-4">
-              <button 
+              <button
                 onClick={handleStart}
                 className="bg-indigo-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-indigo-700 transition-all flex items-center gap-2 shadow-lg shadow-indigo-200"
               >
                 <Play size={18} fill="currentColor" /> Start Solving
               </button>
-              <Link 
+              <Link
                 href="/rca"
                 className="px-8 py-3 rounded-xl font-bold text-slate-600 hover:bg-slate-100 transition-all flex items-center gap-2"
               >
