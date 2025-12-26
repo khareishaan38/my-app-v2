@@ -5,18 +5,25 @@ export function useAutoSave(attemptId: string | null, answers: any) {
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    if (!attemptId || !answers) return;
+    if (!attemptId || !answers || Object.keys(answers).length === 0) return;
 
-    // Clear existing timer
     if (timerRef.current) clearTimeout(timerRef.current);
 
-    // Set a new timer to save after 2 seconds of no typing
     timerRef.current = setTimeout(async () => {
-      await supabase
+      // 1. Check if the attempt is still valid for saving
+      const { data } = await supabase
         .from('attempts')
-        .update({ answers, updated_at: new Date().toISOString() })
-        .eq('id', attemptId);
-      console.log("Auto-saved to Supabase");
+        .select('status')
+        .eq('id', attemptId)
+        .single();
+
+      if (data?.status === 'in_progress' || data?.status === 'submitted') {
+        await supabase
+          .from('attempts')
+          .update({ answers, updated_at: new Date().toISOString() })
+          .eq('id', attemptId);
+        console.log("Auto-save sync successful");
+      }
     }, 2000);
 
     return () => {
