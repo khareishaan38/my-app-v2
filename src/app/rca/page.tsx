@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import { ChevronRight, Clock, BarChart, Home, CheckCircle2, PlayCircle, Award } from 'lucide-react';
+import { ChevronRight, Clock, BarChart, Home, CheckCircle2, PlayCircle, Award, BarChart3, RotateCcw } from 'lucide-react';
 
 export default function RCAListingPage() {
   const router = useRouter();
@@ -27,6 +27,7 @@ export default function RCAListingPage() {
           
           pData.forEach(prob => {
             const validAttempts = aData.filter(a => a.problem_id === prob.id && a.status !== 'terminated');
+            
             if (validAttempts.length > 0) {
               const active = validAttempts.find(a => a.status === 'in_progress' || a.status === 'submitted');
               const evaluated = validAttempts.find(a => a.status === 'evaluated');
@@ -52,12 +53,12 @@ export default function RCAListingPage() {
         <nav className="flex items-center space-x-2 text-sm text-slate-500 mb-8">
           <Link href="/" className="hover:text-indigo-600 flex items-center gap-1"><Home size={14} /> Home</Link>
           <span>/</span>
-          <span className="text-slate-900 font-medium">RCA Simulations</span>
+          <span className="text-slate-900 font-medium font-sans">RCA Simulations</span>
         </nav>
 
         <header className="mb-10">
-          <h1 className="text-4xl font-extrabold text-slate-900 tracking-tight mb-2">RCA Simulations</h1>
-          <p className="text-slate-600 text-lg">Master diagnostic reasoning through real-world incident simulations.</p>
+          <h1 className="text-4xl font-extrabold text-slate-900 tracking-tight mb-2 font-sans">RCA Simulations</h1>
+          <p className="text-slate-600 text-lg font-sans">Master diagnostic reasoning through real-world incident simulations.</p>
         </header>
 
         {loading ? (
@@ -73,46 +74,69 @@ export default function RCAListingPage() {
               const isInProgress = attempt?.status === 'in_progress' || attempt?.status === 'submitted';
 
               return (
-                <div key={problem.id} className="bg-white border border-slate-200 rounded-3xl p-8 hover:shadow-xl hover:border-indigo-100 transition-all duration-300 group">
-                  <div className="flex flex-col md:flex-row justify-between md:items-center gap-6">
+                <div key={problem.id} className="bg-white border border-slate-200 rounded-3xl p-8 hover:shadow-xl hover:border-indigo-100 transition-all duration-300">
+                  <div className="flex flex-col md:flex-row justify-between md:items-start gap-6">
                     <div className="flex-1 space-y-4">
                       <div className="flex items-center gap-3">
-                        <h2 className="text-2xl font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">{problem.title}</h2>
+                        <h2 className="text-2xl font-bold text-slate-900 font-sans">{problem.title}</h2>
                         {isCompleted ? (
-                          <span className="bg-green-100 text-green-700 text-[10px] uppercase tracking-widest font-black px-3 py-1 rounded-full flex items-center gap-1">
+                          <span className="bg-green-100 text-green-700 text-[10px] uppercase tracking-widest font-black px-3 py-1 rounded-full flex items-center gap-1 font-sans">
                             <CheckCircle2 size={12} strokeWidth={3} /> Completed
                           </span>
                         ) : isInProgress ? (
-                          <span className="bg-amber-100 text-amber-700 text-[10px] uppercase tracking-widest font-black px-3 py-1 rounded-full flex items-center gap-1 animate-pulse">
+                          <span className="bg-amber-100 text-amber-700 text-[10px] uppercase tracking-widest font-black px-3 py-1 rounded-full flex items-center gap-1 animate-pulse font-sans">
                             <PlayCircle size={12} strokeWidth={3} /> In Progress
                           </span>
                         ) : null}
                       </div>
-                      <p className="text-slate-600 leading-relaxed max-w-2xl text-sm">{problem.description}</p>
+                      
+                      <p className="text-slate-600 leading-relaxed max-w-2xl text-sm font-sans">{problem.description}</p>
+                      
                       <div className="flex flex-wrap gap-5 pt-2">
-                        <div className="flex items-center gap-2 text-sm font-semibold text-slate-500 bg-slate-50 px-3 py-1.5 rounded-lg">
+                        <div className="flex items-center gap-2 text-sm font-semibold text-slate-500 bg-slate-50 px-3 py-1.5 rounded-lg font-sans">
                           <Clock size={16} className="text-slate-400" /> {problem.time_limit_minutes} Mins
                         </div>
-                        <div className="flex items-center gap-2 text-sm font-semibold text-slate-500 bg-slate-50 px-3 py-1.5 rounded-lg">
+                        <div className="flex items-center gap-2 text-sm font-semibold text-slate-500 bg-slate-50 px-3 py-1.5 rounded-lg font-sans">
                           <BarChart size={16} className="text-slate-400" /> {problem.difficulty}
                         </div>
                         {isCompleted && attempt.final_score !== null && (
-                          <div className="flex items-center gap-2 text-sm font-bold text-indigo-700 bg-indigo-50 px-3 py-1.5 rounded-lg border border-indigo-100">
+                          <div className="flex items-center gap-2 text-sm font-bold text-indigo-700 bg-indigo-50 px-3 py-1.5 rounded-lg border border-indigo-100 font-sans">
                             <Award size={16} /> 
                             Latest Score: {attempt.final_score}{attempt.total_possible_score ? `/${attempt.total_possible_score}` : ''}
                           </div>
                         )}
                       </div>
                     </div>
-                    <Link 
-                      href={`/rca/${problem.id}`}
-                      className={`px-8 py-4 rounded-2xl font-bold transition-all flex items-center justify-center gap-2 whitespace-nowrap ${
-                        isCompleted ? 'bg-slate-900 text-white hover:bg-black' : 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-lg'
-                      }`}
-                    >
-                      {isCompleted ? 'Review Analytics' : (isInProgress ? 'Resume Case' : 'Start Simulation')}
-                      <ChevronRight size={20} />
-                    </Link>
+                    
+                    {/* ACTION BUTTONS */}
+                    <div className="flex flex-col gap-3 min-w-[180px]">
+                      {isCompleted ? (
+                        <>
+                          <Link 
+                            href={`/rca/${problem.id}/results/${attempt.id}`}
+                            className="w-full px-6 py-3.5 rounded-xl font-bold bg-indigo-50 text-indigo-600 hover:bg-indigo-100 transition-all flex items-center justify-center gap-2 text-sm font-sans"
+                          >
+                            <BarChart3 size={18} /> Analysis
+                          </Link>
+                          <Link 
+                            href={`/rca/${problem.id}`}
+                            className="w-full px-6 py-3.5 rounded-xl font-bold bg-slate-900 text-white hover:bg-black transition-all flex items-center justify-center gap-2 text-sm font-sans"
+                          >
+                            <RotateCcw size={18} /> Reattempt
+                          </Link>
+                        </>
+                      ) : (
+                        <Link 
+                          href={`/rca/${problem.id}`}
+                          className={`px-8 py-4 rounded-2xl font-bold transition-all flex items-center justify-center gap-2 whitespace-nowrap font-sans ${
+                            isInProgress ? 'bg-amber-500 text-white hover:bg-amber-600 shadow-lg shadow-amber-100' : 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-xl shadow-indigo-100'
+                          }`}
+                        >
+                          {isInProgress ? 'Resume Case' : 'Start Simulation'}
+                          <ChevronRight size={20} />
+                        </Link>
+                      )}
+                    </div>
                   </div>
                 </div>
               );
