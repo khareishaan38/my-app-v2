@@ -75,12 +75,19 @@ export default function SolvingPage({ params }: { params: Promise<{ id: string }
     init();
   }, [problemId, router, supabase]);
 
-  // Logic R: Popstate (Back Button)
+  // Logic R: Popstate (Back Button) - Save timer state before leaving
   useEffect(() => {
-    const handlePopState = () => {
+    const handlePopState = async () => {
       if (!isEvaluating && !isSubmitting) {
         if (window.confirm("Your progress may not be saved. Do you really want to leave?")) {
-          router.push('/rca'); // Logic S: Go Back preserves In-Progress
+          // Save current time_remaining before navigating away
+          if (attemptId && timeLeft !== null) {
+            await supabase.from('attempts').update({
+              time_remaining: timeLeft,
+              updated_at: new Date().toISOString()
+            }).eq('id', attemptId);
+          }
+          router.push('/rca');
         } else {
           window.history.pushState(null, '', window.location.href);
         }
@@ -89,7 +96,7 @@ export default function SolvingPage({ params }: { params: Promise<{ id: string }
     window.history.pushState(null, '', window.location.href);
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
-  }, [isEvaluating, isSubmitting, router]);
+  }, [isEvaluating, isSubmitting, router, attemptId, timeLeft, supabase]);
 
   // Logic U: Timeout
   useEffect(() => {
@@ -101,7 +108,7 @@ export default function SolvingPage({ params }: { params: Promise<{ id: string }
     return () => clearInterval(interval);
   }, [timeLeft, isEvaluating, attemptId, initializing]);
 
-  useAutoSave(supabase, attemptId, answers);
+  useAutoSave(supabase, attemptId, answers, timeLeft);
 
   const handleAutoSubmit = async () => {
     setIsSubmitting(true);
