@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, use } from 'react';
 import Link from 'next/link';
-import { supabase } from '@/lib/supabase';
+import { useSessionGuard } from '@/hooks/useSessionGuard';
 import { ChevronLeft, Play, Clock, BarChart, Home } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
@@ -15,32 +15,39 @@ interface Problem {
 }
 
 export default function ProblemContextPage({ params }: { params: Promise<{ id: string }> }) {
-  // Unwrap the dynamic URL parameter
   const { id } = use(params);
+  const { user, isLoading: sessionLoading, supabase } = useSessionGuard();
   const [problem, setProblem] = useState<Problem | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
+    if (sessionLoading || !user) return;
+
     async function fetchProblem() {
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from('problems')
         .select('*')
         .eq('id', id)
         .single();
-      
+
       if (data) setProblem(data);
       setLoading(false);
     }
     fetchProblem();
-  }, [id]);
+  }, [id, sessionLoading, user, supabase]);
 
   const handleStart = () => {
-    // Navigate to the solving engine page we just created
     router.push(`/rca/${id}/solve`);
   };
 
-  if (loading) return <div className="p-20 text-center text-slate-500">Loading Case...</div>;
+  if (sessionLoading || loading) return (
+    <div className="min-h-screen bg-white flex flex-col items-center justify-center space-y-4">
+      <div className="w-10 h-10 border-4 border-slate-100 border-t-slate-900 rounded-full animate-spin" />
+      <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Loading Case</p>
+    </div>
+  );
+
   if (!problem) return <div className="p-20 text-center text-red-500">Problem not found.</div>;
 
   return (
@@ -62,10 +69,10 @@ export default function ProblemContextPage({ params }: { params: Promise<{ id: s
             <h1 className="text-3xl font-bold text-slate-900 mb-4">{problem.title}</h1>
             <div className="flex gap-6 text-sm font-semibold text-slate-600">
               <div className="flex items-center gap-2">
-                <Clock size={18} className="text-indigo-600"/> {problem.time_limit_minutes} Minutes
+                <Clock size={18} className="text-indigo-600" /> {problem.time_limit_minutes} Minutes
               </div>
               <div className="flex items-center gap-2">
-                <BarChart size={18} className="text-indigo-600"/> {problem.difficulty} Difficulty
+                <BarChart size={18} className="text-indigo-600" /> {problem.difficulty} Difficulty
               </div>
             </div>
           </div>
@@ -75,7 +82,7 @@ export default function ProblemContextPage({ params }: { params: Promise<{ id: s
             <div className="prose prose-slate max-w-none text-slate-700 leading-relaxed whitespace-pre-wrap">
               {problem.context}
             </div>
-            
+
             <div className="mt-10 flex gap-4">
               <button
                 onClick={handleStart}
@@ -96,4 +103,5 @@ export default function ProblemContextPage({ params }: { params: Promise<{ id: s
     </div>
   );
 }
+
 

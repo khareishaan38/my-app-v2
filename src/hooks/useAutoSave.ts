@@ -1,7 +1,15 @@
 import { useEffect, useRef } from 'react';
-import { supabase } from '@/lib/supabase';
+import type { SupabaseClient } from '@supabase/supabase-js';
 
-export function useAutoSave(attemptId: string | null, answers: any) {
+/**
+ * Auto-save hook that debounces saving user answers to Supabase.
+ * Accepts supabase client as parameter for session consistency.
+ */
+export function useAutoSave(
+  supabase: SupabaseClient,
+  attemptId: string | null,
+  answers: Record<string, string>
+) {
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
@@ -10,7 +18,7 @@ export function useAutoSave(attemptId: string | null, answers: any) {
     if (timerRef.current) clearTimeout(timerRef.current);
 
     timerRef.current = setTimeout(async () => {
-      // 1. Check if the attempt is still valid for saving
+      // Check if the attempt is still valid for saving
       const { data } = await supabase
         .from('attempts')
         .select('status')
@@ -29,6 +37,7 @@ export function useAutoSave(attemptId: string | null, answers: any) {
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
     };
-  }, [answers, attemptId]);
+  }, [answers, attemptId, supabase]);
 }
+
 

@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { CheckCircle2, Award, Target, LayoutDashboard, AlertCircle, XCircle, LogOut, Clock } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { getSupabaseBrowserClient } from '@/lib/supabase';
 
 interface Props {
   attemptId: string;
@@ -12,6 +12,7 @@ interface Props {
 }
 
 export default function SelfEvaluation({ attemptId, questions, userAnswers, onComplete }: Props) {
+  const supabase = useMemo(() => getSupabaseBrowserClient(), []);
   const [checkedItems, setCheckedItems] = useState<Record<string, boolean[]>>({});
   const [isRevealed, setIsRevealed] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -60,7 +61,7 @@ export default function SelfEvaluation({ attemptId, questions, userAnswers, onCo
     if (!allEvaluated) return;
     setIsSubmitting(true);
     const scoreResult = calculateScore();
-    
+
     // UPDATED: Now saves the total_possible_score column
     await supabase.from('attempts').update({
       scores: checkedItems,
@@ -69,7 +70,7 @@ export default function SelfEvaluation({ attemptId, questions, userAnswers, onCo
       status: 'evaluated',
       updated_at: new Date().toISOString()
     }).eq('id', attemptId);
-    
+
     setFinalScore(scoreResult);
     setIsRevealed(true);
     setIsSubmitting(false);

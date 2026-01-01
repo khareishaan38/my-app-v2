@@ -2,24 +2,27 @@
 
 import React, { useEffect, useState, use } from 'react';
 import Link from 'next/link';
-import { supabase } from '@/lib/supabase';
-import { ChevronLeft, Award, CheckCircle2, Home, BarChart3, Clock, LayoutDashboard } from 'lucide-react';
+import { useSessionGuard } from '@/hooks/useSessionGuard';
+import { ChevronLeft, Award, CheckCircle2, LayoutDashboard } from 'lucide-react';
 
 export default function ResultsReviewPage({ params }: { params: Promise<{ id: string, attemptId: string }> }) {
   const { id: problemId, attemptId } = use(params);
+  const { user, isLoading: sessionLoading, supabase } = useSessionGuard();
   const [attempt, setAttempt] = useState<any>(null);
   const [problem, setProblem] = useState<any>(null);
   const [questions, setQuestions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (sessionLoading || !user) return;
+
     async function fetchData() {
       setLoading(true);
       try {
         const { data: a } = await supabase.from('attempts').select('*').eq('id', attemptId).single();
         const { data: p } = await supabase.from('problems').select('*').eq('id', problemId).single();
         const { data: q } = await supabase.from('questions').select('*').eq('problem_id', problemId).order('order_index');
-        
+
         setAttempt(a);
         setProblem(p);
         setQuestions(q || []);
@@ -30,9 +33,14 @@ export default function ResultsReviewPage({ params }: { params: Promise<{ id: st
       }
     }
     fetchData();
-  }, [problemId, attemptId]);
+  }, [problemId, attemptId, sessionLoading, user, supabase]);
 
-  if (loading) return <div className="p-20 text-center text-slate-400 font-sans">Loading Analysis...</div>;
+  if (sessionLoading || loading) return (
+    <div className="min-h-screen bg-white flex flex-col items-center justify-center space-y-4">
+      <div className="w-10 h-10 border-4 border-slate-100 border-t-slate-900 rounded-full animate-spin" />
+      <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Loading Analysis</p>
+    </div>
+  );
   if (!attempt || !problem) return <div className="p-20 text-center text-slate-400 font-sans">Session not found.</div>;
 
   return (
@@ -49,10 +57,10 @@ export default function ResultsReviewPage({ params }: { params: Promise<{ id: st
             </div>
           </div>
           <div className="bg-indigo-50 px-4 py-2 rounded-xl border border-indigo-100 flex items-center gap-3">
-             <div className="text-indigo-600"><Award size={20} /></div>
-             <div className="text-lg font-black text-indigo-700 font-sans">
-               {attempt.final_score}/{attempt.total_possible_score || '??'}
-             </div>
+            <div className="text-indigo-600"><Award size={20} /></div>
+            <div className="text-lg font-black text-indigo-700 font-sans">
+              {attempt.final_score}/{attempt.total_possible_score || '??'}
+            </div>
           </div>
         </div>
       </header>
@@ -86,7 +94,7 @@ export default function ResultsReviewPage({ params }: { params: Promise<{ id: st
                         {isSkipped ? "Question was skipped during the attempt." : userAnswer}
                       </div>
                     </div>
-                    
+
                     {!isSkipped && (
                       <div className="p-6 bg-indigo-600 rounded-2xl text-white shadow-lg">
                         <div className="flex items-center gap-2 mb-3 opacity-90">
@@ -119,14 +127,15 @@ export default function ResultsReviewPage({ params }: { params: Promise<{ id: st
             );
           })}
         </div>
-        
+
         <div className="mt-20 border-t pt-10 text-center">
-            <Link href="/rca" className="inline-flex items-center gap-2 bg-slate-900 text-white px-10 py-4 rounded-2xl font-bold hover:bg-black transition-all font-sans">
-                <LayoutDashboard size={20} /> Back to Dashboard
-            </Link>
+          <Link href="/rca" className="inline-flex items-center gap-2 bg-slate-900 text-white px-10 py-4 rounded-2xl font-bold hover:bg-black transition-all font-sans">
+            <LayoutDashboard size={20} /> Back to Dashboard
+          </Link>
         </div>
       </main>
     </div>
   );
 }
+
 

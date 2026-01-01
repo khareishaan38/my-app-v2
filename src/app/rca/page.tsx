@@ -1,10 +1,10 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
-import { ChevronRight, Clock, BarChart, Home, CheckCircle2, PlayCircle, Award, BarChart3, RotateCcw } from 'lucide-react';
+import { createBrowserClient } from '@supabase/ssr';
+import { ChevronRight, Home, CheckCircle2, Award, RotateCcw, Clock } from 'lucide-react';
 
 export default function RCAListingPage() {
   const router = useRouter();
@@ -12,137 +12,100 @@ export default function RCAListingPage() {
   const [attempts, setAttempts] = useState<Record<string, any>>({});
   const [loading, setLoading] = useState(true);
 
+  const supabase = useMemo(() => createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  ), []);
+
   useEffect(() => {
     async function fetchData() {
       setLoading(true);
-      router.refresh();
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) { router.push('/'); return; }
 
       try {
         const { data: pData } = await supabase.from('problems').select('*').eq('is_active', true);
-        const { data: aData } = await supabase.from('attempts').select('*').order('created_at', { ascending: false });
+        const { data: aData } = await supabase
+          .from('attempts')
+          .select('*')
+          .eq('user_id', session.user.id)
+          .order('created_at', { ascending: false });
 
-        if (pData) setProblems(pData);
-        if (aData && pData) {
-          const attemptMap: Record<string, any> = {};
-          
-          pData.forEach(prob => {
-            const validAttempts = aData.filter(a => a.problem_id === prob.id && a.status !== 'terminated');
-            
-            if (validAttempts.length > 0) {
-              const active = validAttempts.find(a => a.status === 'in_progress' || a.status === 'submitted');
-              const evaluated = validAttempts.find(a => a.status === 'evaluated');
-              attemptMap[prob.id] = active || evaluated || null;
-            } else {
-              attemptMap[prob.id] = null;
-            }
-          });
-          setAttempts(attemptMap);
-        }
-      } catch (err) {
-        console.error("Dashboard Sync Error:", err);
+        setProblems(pData || []);
+        const attemptMap: Record<string, any> = {};
+        
+        pData?.forEach(prob => {
+          const userAttempts = (aData || []).filter(a => a.problem_id === prob.id && a.status !== 'terminated');
+          if (userAttempts.length > 0) {
+            // Logic Map H & K: Prioritize active attempts (in_progress/submitted) then evaluated
+            const active = userAttempts.find(a => a.status === 'in_progress' || a.status === 'submitted');
+            const evaluated = userAttempts.find(a => a.status === 'evaluated');
+            attemptMap[prob.id] = active || evaluated || null;
+          }
+        });
+        setAttempts(attemptMap);
       } finally {
         setLoading(false);
       }
     }
     fetchData();
-  }, [router]);
+  }, [router, supabase]);
+
+  if (loading) return (
+    <div className="min-h-screen bg-white flex flex-col items-center justify-center space-y-4">
+      <div className="w-12 h-12 border-4 border-slate-200 border-t-slate-900 rounded-full animate-spin" />
+      <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Restoring Engine State</p>
+    </div>
+  );
 
   return (
-    <div className="min-h-screen bg-slate-50 p-8">
+    <div className="min-h-screen bg-slate-50 p-8 font-sans">
       <div className="max-w-4xl mx-auto">
-        <nav className="flex items-center space-x-2 text-sm text-slate-500 mb-8">
-          <Link href="/" className="hover:text-indigo-600 flex items-center gap-1"><Home size={14} /> Home</Link>
+        <nav className="flex items-center space-x-2 text-sm text-slate-500 mb-8 font-bold uppercase tracking-widest">
+          <Link href="/dashboard" className="hover:text-slate-900 flex items-center gap-1"><Home size={14} /> Dashboard</Link>
           <span>/</span>
-          <span className="text-slate-900 font-medium font-sans">RCA Simulations</span>
+          <span className="text-slate-900">RCA Simulations</span>
         </nav>
 
-        <header className="mb-10">
-          <h1 className="text-4xl font-extrabold text-slate-900 tracking-tight mb-2 font-sans">RCA Simulations</h1>
-          <p className="text-slate-600 text-lg font-sans">Master diagnostic reasoning through real-world incident simulations.</p>
-        </header>
+        <div className="grid gap-6">
+          {problems.map((problem) => {
+            const attempt = attempts[problem.id];
+            const isCompleted = attempt?.status === 'evaluated';
+            const isInProgress = attempt?.status === 'in_progress' || attempt?.status === 'submitted';
 
-        {loading ? (
-          <div className="flex flex-col items-center justify-center py-20 bg-white rounded-3xl border border-dashed border-slate-200">
-            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600 mb-4"></div>
-            <p className="text-slate-400 font-medium font-sans">Syncing with Supabase...</p>
-          </div>
-        ) : (
-          <div className="grid gap-6">
-            {problems.map((problem) => {
-              const attempt = attempts[problem.id];
-              const isCompleted = attempt?.status === 'evaluated';
-              const isInProgress = attempt?.status === 'in_progress' || attempt?.status === 'submitted';
-
-              return (
-                <div key={problem.id} className="bg-white border border-slate-200 rounded-3xl p-8 hover:shadow-xl hover:border-indigo-100 transition-all duration-300">
-                  <div className="flex flex-col md:flex-row justify-between md:items-start gap-6">
-                    <div className="flex-1 space-y-4">
-                      <div className="flex items-center gap-3">
-                        <h2 className="text-2xl font-bold text-slate-900 font-sans">{problem.title}</h2>
-                        {isCompleted ? (
-                          <span className="bg-green-100 text-green-700 text-[10px] uppercase tracking-widest font-black px-3 py-1 rounded-full flex items-center gap-1 font-sans">
-                            <CheckCircle2 size={12} strokeWidth={3} /> Completed
-                          </span>
-                        ) : isInProgress ? (
-                          <span className="bg-amber-100 text-amber-700 text-[10px] uppercase tracking-widest font-black px-3 py-1 rounded-full flex items-center gap-1 animate-pulse font-sans">
-                            <PlayCircle size={12} strokeWidth={3} /> In Progress
-                          </span>
-                        ) : null}
-                      </div>
-                      
-                      <p className="text-slate-600 leading-relaxed max-w-2xl text-sm font-sans">{problem.description}</p>
-                      
-                      <div className="flex flex-wrap gap-5 pt-2">
-                        <div className="flex items-center gap-2 text-sm font-semibold text-slate-500 bg-slate-50 px-3 py-1.5 rounded-lg font-sans">
-                          <Clock size={16} className="text-slate-400" /> {problem.time_limit_minutes} Mins
-                        </div>
-                        <div className="flex items-center gap-2 text-sm font-semibold text-slate-500 bg-slate-50 px-3 py-1.5 rounded-lg font-sans">
-                          <BarChart size={16} className="text-slate-400" /> {problem.difficulty}
-                        </div>
-                        {isCompleted && attempt.final_score !== null && (
-                          <div className="flex items-center gap-2 text-sm font-bold text-indigo-700 bg-indigo-50 px-3 py-1.5 rounded-lg border border-indigo-100 font-sans">
-                            <Award size={16} /> 
-                            Latest Score: {attempt.final_score}{attempt.total_possible_score ? `/${attempt.total_possible_score}` : ''}
-                          </div>
-                        )}
-                      </div>
+            return (
+              <div key={problem.id} className="bg-white border-2 border-slate-100 rounded-[40px] p-10 hover:border-slate-900 transition-all shadow-sm">
+                <div className="flex flex-col md:flex-row justify-between md:items-start gap-8">
+                  <div className="flex-1 space-y-4">
+                    <div className="flex items-center gap-3">
+                      <h2 className="text-3xl font-black text-slate-900 italic tracking-tighter uppercase">{problem.title}</h2>
+                      {isCompleted && <span className="bg-green-100 text-green-700 text-[10px] font-black px-3 py-1 rounded-full">COMPLETED</span>}
+                      {isInProgress && <span className="bg-amber-100 text-amber-700 text-[10px] font-black px-3 py-1 rounded-full animate-pulse">IN PROGRESS</span>}
                     </div>
-                    
-                    {/* ACTION BUTTONS */}
-                    <div className="flex flex-col gap-3 min-w-[180px]">
-                      {isCompleted ? (
-                        <>
-                          <Link 
-                            href={`/rca/${problem.id}/results/${attempt.id}`}
-                            className="w-full px-6 py-3.5 rounded-xl font-bold bg-indigo-50 text-indigo-600 hover:bg-indigo-100 transition-all flex items-center justify-center gap-2 text-sm font-sans"
-                          >
-                            <BarChart3 size={18} /> Analysis
-                          </Link>
-                          <Link 
-                            href={`/rca/${problem.id}`}
-                            className="w-full px-6 py-3.5 rounded-xl font-bold bg-slate-900 text-white hover:bg-black transition-all flex items-center justify-center gap-2 text-sm font-sans"
-                          >
-                            <RotateCcw size={18} /> Reattempt
-                          </Link>
-                        </>
-                      ) : (
-                        <Link 
-                          href={`/rca/${problem.id}`}
-                          className={`px-8 py-4 rounded-2xl font-bold transition-all flex items-center justify-center gap-2 whitespace-nowrap font-sans ${
-                            isInProgress ? 'bg-amber-500 text-white hover:bg-amber-600 shadow-lg shadow-amber-100' : 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-xl shadow-indigo-100'
-                          }`}
-                        >
-                          {isInProgress ? 'Resume Case' : 'Start Simulation'}
-                          <ChevronRight size={20} />
-                        </Link>
-                      )}
-                    </div>
+                    <p className="text-slate-500 text-sm font-bold leading-relaxed max-w-xl">{problem.description}</p>
+                    {isCompleted && (
+                       <div className="inline-flex items-center gap-2 text-sm font-black text-slate-900 bg-slate-50 px-4 py-2 rounded-2xl border border-slate-200">
+                         <Award size={18} /> Score: {attempt.final_score}/{attempt.total_possible_score}
+                       </div>
+                    )}
+                  </div>
+                  <div className="flex flex-col gap-3 min-w-[200px]">
+                    {isCompleted ? (
+                      <>
+                        <Link href={`/rca/${problem.id}/results/${attempt.id}`} className="w-full py-4 rounded-2xl font-black bg-slate-50 text-slate-500 hover:bg-slate-100 text-center text-xs uppercase tracking-widest border border-slate-200 transition-all">View Analytics</Link>
+                        <Link href={`/rca/${problem.id}`} className="w-full py-4 rounded-2xl font-black bg-slate-900 text-white hover:bg-black text-center text-xs uppercase tracking-widest flex items-center justify-center gap-2 shadow-xl"><RotateCcw size={16} /> Reattempt</Link>
+                      </>
+                    ) : (
+                      <Link href={`/rca/${problem.id}`} className={`px-8 py-5 rounded-2xl font-black text-xs uppercase tracking-widest transition-all text-center ${isInProgress ? 'bg-amber-500 text-white shadow-lg' : 'bg-slate-900 text-white shadow-2xl'} flex items-center justify-center gap-2`}>
+                        {isInProgress ? 'Resume Simulation' : 'Start Simulation'} <ChevronRight size={18} />
+                      </Link>
+                    )}
                   </div>
                 </div>
-              );
-            })}
-          </div>
-        )}
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
