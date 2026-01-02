@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { createBrowserClient } from '@supabase/ssr';
 import { Home } from 'lucide-react';
+import Header from '@/components/layout/Header';
 import ProblemCard from '@/components/rca/ProblemCard';
 import SearchBar from '@/components/rca/SearchBar';
 import FilterBar from '@/components/rca/FilterBar';
@@ -28,6 +29,7 @@ interface Attempt {
 function RCAListingContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [user, setUser] = useState<any>(null);
   const [problems, setProblems] = useState<Problem[]>([]);
   const [attempts, setAttempts] = useState<Record<string, Attempt>>({});
   const [loading, setLoading] = useState(true);
@@ -42,6 +44,7 @@ function RCAListingContent() {
       setLoading(true);
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.user) { router.push('/'); return; }
+      setUser(session.user);
 
       try {
         const { data: pData } = await supabase.from('problems').select('*').eq('is_active', true);
@@ -132,6 +135,8 @@ function RCAListingContent() {
   return (
     <div className="min-h-screen bg-slate-50 p-8 font-sans">
       <div className="max-w-4xl mx-auto">
+        <Header user={user} supabase={supabase} />
+
         <nav className="flex items-center space-x-2 text-sm text-slate-500 mb-8 font-bold uppercase tracking-widest">
           <Link href="/dashboard" className="hover:text-slate-900 flex items-center gap-1"><Home size={14} /> Dashboard</Link>
           <span>/</span>
