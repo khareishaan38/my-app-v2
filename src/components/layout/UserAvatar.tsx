@@ -67,8 +67,8 @@ export default function UserAvatar({ user, supabase, isLoading = false }: UserAv
     if (isLoading) {
         return (
             <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-slate-200 animate-pulse" />
-                <div className="w-20 h-4 rounded bg-slate-200 animate-pulse hidden sm:block" />
+                <div className="w-10 h-10 rounded-full bg-slate-700 animate-pulse" />
+                <div className="w-20 h-4 rounded bg-slate-700 animate-pulse hidden sm:block" />
             </div>
         );
     }
@@ -78,27 +78,27 @@ export default function UserAvatar({ user, supabase, isLoading = false }: UserAv
             <div ref={dropdownRef} className="relative">
                 <button
                     onClick={() => setIsOpen(!isOpen)}
-                    className="flex items-center gap-2 p-1 rounded-full hover:bg-slate-100 transition-colors"
+                    className="flex items-center gap-2 p-1 rounded-full hover:bg-slate-800 transition-colors"
                 >
                     {/* Avatar */}
                     {avatarUrl ? (
                         <img
                             src={avatarUrl}
                             alt={fullName}
-                            className="w-10 h-10 rounded-full object-cover border-2 border-slate-200"
+                            className="w-10 h-10 rounded-full object-cover border-2 border-white/30"
                         />
                     ) : (
-                        <div className="w-10 h-10 rounded-full bg-indigo-600 flex items-center justify-center text-white font-bold text-sm">
+                        <div className="w-10 h-10 rounded-full bg-indigo-500 flex items-center justify-center text-white font-bold text-sm">
                             {initials}
                         </div>
                     )}
                     {/* Name (hidden on mobile) */}
-                    <span className="hidden sm:block max-w-[120px] truncate text-sm font-bold text-slate-700">
+                    <span className="hidden sm:block max-w-[120px] truncate text-sm font-medium text-white">
                         {firstName}
                     </span>
                     <ChevronDown
                         size={16}
-                        className={`text-slate-400 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+                        className={`text-white/70 transition-transform ${isOpen ? 'rotate-180' : ''}`}
                     />
                 </button>
 
@@ -114,8 +114,8 @@ export default function UserAvatar({ user, supabase, isLoading = false }: UserAv
                                     href={item.href}
                                     onClick={() => setIsOpen(false)}
                                     className={`flex items-center gap-3 px-4 py-3 text-sm font-bold transition-colors ${isActive
-                                            ? 'bg-slate-100 text-slate-900'
-                                            : 'text-slate-600 hover:bg-slate-50'
+                                        ? 'bg-slate-100 text-slate-900'
+                                        : 'text-slate-600 hover:bg-slate-50'
                                         }`}
                                 >
                                     <Icon size={18} />

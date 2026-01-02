@@ -50,29 +50,29 @@ export default function SearchBar({ placeholder = 'Search problems...' }: Search
     };
 
     return (
-        <form onSubmit={handleSubmit} className="relative flex items-center gap-2 w-full">
+        <form onSubmit={handleSubmit} className="relative flex items-center gap-3 w-full">
             <div className="relative flex-1">
-                <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
                 <input
                     type="text"
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
                     placeholder={placeholder}
-                    className="w-full pl-12 pr-10 py-3 rounded-2xl border-2 border-slate-200 focus:border-slate-900 outline-none transition-all text-sm font-bold text-slate-900 placeholder:text-slate-400"
+                    className="w-full pl-11 pr-10 py-2.5 rounded-xl bg-gray-50 border border-gray-200 focus:border-blue-400 focus:bg-white outline-none transition-all text-sm text-gray-800 placeholder:text-gray-400"
                 />
                 {query && (
                     <button
                         type="button"
                         onClick={handleClear}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-slate-100 rounded-full transition-colors"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-gray-200 rounded-full transition-colors"
                     >
-                        <X size={16} className="text-slate-400" />
+                        <X size={14} className="text-gray-400" />
                     </button>
                 )}
             </div>
             <button
                 type="submit"
-                className="px-6 py-3 bg-slate-900 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-black transition-all shadow-lg"
+                className="px-5 py-2.5 bg-gray-900 text-white rounded-xl font-medium text-sm hover:bg-gray-800 transition-all shadow-sm"
             >
                 Search
             </button>

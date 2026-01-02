@@ -13,11 +13,13 @@ interface HeaderProps {
 
 export default function Header({ user, supabase, isLoading = false }: HeaderProps) {
     return (
-        <header className="flex justify-between items-center mb-8">
-            <Link href="/dashboard" className="flex items-center gap-2">
-                <h1 className="text-3xl font-black text-slate-900 tracking-tight italic">PMSense</h1>
-            </Link>
-            <UserAvatar user={user} supabase={supabase} isLoading={isLoading} />
+        <header className="fixed top-0 left-0 right-0 z-50 bg-slate-900 shadow-lg px-8 py-4">
+            <div className="flex justify-between items-center max-w-6xl mx-auto">
+                <Link href="/dashboard" className="flex items-center gap-2">
+                    <h1 className="text-2xl font-bold text-white tracking-tight">PMSense</h1>
+                </Link>
+                <UserAvatar user={user} supabase={supabase} isLoading={isLoading} />
+            </div>
         </header>
     );
 }

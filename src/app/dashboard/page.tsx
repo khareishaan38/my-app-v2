@@ -31,19 +31,17 @@ export default function DashboardPage() {
   }, [supabase, router]);
 
   if (loading) return (
-    <div className="min-h-screen bg-slate-50 p-8 font-sans">
-      <div className="max-w-6xl mx-auto">
-        <Header user={null} supabase={supabase} isLoading={true} />
-      </div>
+    <div className="min-h-screen bg-slate-50 font-sans">
+      <Header user={null} supabase={supabase} isLoading={true} />
+      <div className="max-w-6xl mx-auto px-8 pt-24 pb-8" />
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-slate-50 p-8 font-sans">
-      <div className="max-w-6xl mx-auto">
-        <Header user={user} supabase={supabase} />
-
-        <div className="grid md:grid-cols-3 gap-8 mt-8">
+    <div className="min-h-screen bg-slate-50 font-sans">
+      <Header user={user} supabase={supabase} />
+      <div className="max-w-6xl mx-auto px-8 pt-24 pb-8">
+        <div className="grid md:grid-cols-3 gap-8">
           {/* RCA SIMULATIONS */}
           <Link
             href="/rca"

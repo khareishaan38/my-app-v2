@@ -94,15 +94,15 @@ export default function FilterBar() {
             <div className="relative">
                 <button
                     onClick={() => setOpenDropdown(isOpen ? null : category)}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-xl border-2 transition-all text-sm font-bold ${selectedValues.length > 0
-                            ? 'bg-slate-900 text-white border-slate-900'
-                            : 'bg-white text-slate-600 border-slate-200 hover:border-slate-400'
+                    className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-all text-sm ${selectedValues.length > 0
+                            ? 'bg-blue-50 text-blue-700 border-blue-200'
+                            : 'bg-gray-50 text-gray-600 border-gray-200 hover:border-gray-300'
                         }`}
                 >
                     {icon}
                     {label}
                     {selectedValues.length > 0 && (
-                        <span className="bg-white text-slate-900 text-[10px] font-black px-1.5 py-0.5 rounded-full">
+                        <span className="bg-blue-600 text-white text-[10px] font-medium px-1.5 py-0.5 rounded-full">
                             {selectedValues.length}
                         </span>
                     )}
@@ -110,19 +110,19 @@ export default function FilterBar() {
                 </button>
 
                 {isOpen && (
-                    <div className="absolute top-full left-0 mt-2 bg-white border-2 border-slate-200 rounded-2xl shadow-xl p-2 min-w-[180px] z-50">
+                    <div className="absolute top-full left-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-lg p-1.5 min-w-[160px] z-50">
                         {options.map(option => (
                             <label
                                 key={option.value}
-                                className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-slate-50 cursor-pointer transition-colors"
+                                className="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
                             >
                                 <input
                                     type="checkbox"
                                     checked={selectedValues.includes(option.value)}
                                     onChange={(e) => updateFilter(category, option.value, e.target.checked)}
-                                    className="w-4 h-4 rounded text-slate-900"
+                                    className="w-4 h-4 rounded text-blue-600 border-gray-300"
                                 />
-                                <span className="text-sm font-bold text-slate-700">{option.label}</span>
+                                <span className="text-sm text-gray-700">{option.label}</span>
                             </label>
                         ))}
                     </div>
@@ -133,22 +133,22 @@ export default function FilterBar() {
 
     return (
         <div ref={dropdownRef} className="flex flex-wrap items-center gap-3">
-            <div className="flex items-center gap-2 text-sm font-black text-slate-400 uppercase tracking-widest">
+            <div className="flex items-center gap-2 text-sm text-gray-500">
                 <Filter size={16} />
-                Filter By:
+                Filters:
             </div>
 
-            {renderDropdown('difficulty', DIFFICULTY_OPTIONS, <BarChart3 size={16} />, 'Difficulty')}
-            {renderDropdown('time', TIME_OPTIONS, <Clock size={16} />, 'Time')}
-            {renderDropdown('status', STATUS_OPTIONS, <CheckCircle size={16} />, 'Status')}
+            {renderDropdown('difficulty', DIFFICULTY_OPTIONS, <BarChart3 size={14} />, 'Difficulty')}
+            {renderDropdown('time', TIME_OPTIONS, <Clock size={14} />, 'Time')}
+            {renderDropdown('status', STATUS_OPTIONS, <CheckCircle size={14} />, 'Status')}
 
             {hasActiveFilters && (
                 <button
                     onClick={clearAllFilters}
-                    className="flex items-center gap-1 px-3 py-2 text-sm font-bold text-red-600 hover:bg-red-50 rounded-xl transition-colors"
+                    className="flex items-center gap-1 px-2.5 py-1.5 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                 >
                     <X size={14} />
-                    Clear All
+                    Clear
                 </button>
             )}
         </div>

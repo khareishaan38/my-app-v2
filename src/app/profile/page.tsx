@@ -90,9 +90,9 @@ export default function ProfilePage() {
     }
 
     return (
-        <div className="min-h-screen bg-slate-50 p-8 font-sans">
-            <div className="max-w-4xl mx-auto">
-                <Header user={user} supabase={supabase} />
+        <div className="min-h-screen bg-slate-50 font-sans">
+            <Header user={user} supabase={supabase} />
+            <div className="max-w-4xl mx-auto px-8 pt-24 pb-8">
 
                 {/* Breadcrumb */}
                 <nav className="flex items-center space-x-2 text-sm text-slate-500 mb-8 font-bold uppercase tracking-widest">
