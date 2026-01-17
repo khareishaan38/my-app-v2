@@ -215,38 +215,36 @@ ${userMessage}
         const moveOnPhrases = ['next question', 'move on', 'move to next', 'skip this', 'let\'s continue', 'continue to next'];
         const userWantsToMoveOn = moveOnPhrases.some(kw => userMessage.toLowerCase().includes(kw));
 
-        // Detect if Dan asked a new question (VERY STRICT matching)
+        // Detect if Dan asked a new question (balanced matching)
         // BUT skip this if user is done OR wants to move on - don't mark more questions
         let newQuestionsAsked = [...questionsAsked];
 
         if (!userSaysDone && !userWantsToMoveOn) {
             // Only mark a question as asked if Dan's response contains an actual QUESTION
-            // that closely matches one of the pending questions
+            // that matches one of the pending questions
 
-            // First, check if Dan's response even contains a question (ends with ?)
+            // Check if Dan's response contains a question mark
             const danAsksQuestion = response.includes('?');
 
             if (danAsksQuestion) {
-                // Extract the last question from Dan's response
-                const sentences = response.split(/[.!?]+/).filter(s => s.trim());
-                const lastSentence = sentences[sentences.length - 1]?.toLowerCase().trim() || '';
+                const responseLower = response.toLowerCase();
 
                 for (let i = 0; i < questions.length; i++) {
                     if (!questionsAsked.includes(i)) {
                         const questionText = questions[i].text.toLowerCase();
 
-                        // Extract key topic words from the question (nouns/verbs 6+ chars)
+                        // Extract key topic words from the question (5+ chars, excluding common words)
+                        const commonWords = ['would', 'should', 'which', 'about', 'could', 'their', 'there', 'where', 'these', 'those', 'being', 'doing', 'having', 'what'];
                         const topicWords = questionText
                             .split(/\s+/)
-                            .filter(w => w.length >= 6)
-                            .filter(w => !['would', 'should', 'which', 'about', 'could', 'their', 'there', 'where', 'these', 'those'].includes(w));
+                            .filter(w => w.length >= 5)
+                            .filter(w => !commonWords.includes(w));
 
-                        // Count how many topic words appear in Dan's last question
-                        const matchCount = topicWords.filter(w => lastSentence.includes(w)).length;
+                        // Count how many topic words appear ANYWHERE in Dan's response
+                        const matchCount = topicWords.filter(w => responseLower.includes(w)).length;
 
-                        // Mark as asked ONLY if Dan's question contains 3+ topic words from the pending question
-                        // This ensures Dan is actually asking ABOUT this topic, not just mentioning keywords
-                        if (matchCount >= 3) {
+                        // Mark as asked if Dan's response contains 2+ topic words from the pending question
+                        if (matchCount >= 2) {
                             newQuestionsAsked.push(i);
                             break; // Only mark one question per response
                         }
