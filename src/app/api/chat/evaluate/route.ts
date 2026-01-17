@@ -37,6 +37,10 @@ SCORING RULES:
 - A rubric item is "addressed" if the user mentioned or demonstrated understanding of that concept at any point
 - Be generous - if they touched on the idea, count it
 - Each rubric item = 1 point, so max score per question = number of rubric items
+- IMPORTANT: If the user answered a question and then asked to move on, STILL credit them for what they answered
+- Do NOT penalize users for skipping follow-up questions - score based on their actual responses
+- Users moving to the next question is NOT "failing" - it's pacing themselves
+- Only give 0 points if the user truly provided NO relevant information for that topic
 
 OUTPUT FORMAT (JSON only, no markdown):
 {
