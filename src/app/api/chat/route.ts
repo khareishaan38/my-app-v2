@@ -187,12 +187,16 @@ ${userMessage}
         const hasMinimumEngagement = questionsAsked.length >= 1 || history.length >= 3;
         const userSaysDone = hasMinimumEngagement && doneKeywords.some(kw => userMessage.toLowerCase().includes(kw));
 
+        // Detect if user wants to skip to next question (should NOT mark the skipped question)
+        const moveOnPhrases = ['next question', 'move on', 'move to next', 'skip this', 'let\'s continue', 'continue to next'];
+        const userWantsToMoveOn = moveOnPhrases.some(kw => userMessage.toLowerCase().includes(kw));
+
         // Detect if Dan asked a new question (simple heuristic)
-        // BUT skip this if user is signaling they're done - don't mark more questions
+        // BUT skip this if user is done OR wants to move on - don't mark more questions
         let newQuestionsAsked = [...questionsAsked];
 
-        if (!userSaysDone) {
-            // Only use keyword matching when user is NOT trying to wrap up
+        if (!userSaysDone && !userWantsToMoveOn) {
+            // Only use keyword matching when user is NOT trying to wrap up or skip
             for (let i = 0; i < questions.length; i++) {
                 if (!questionsAsked.includes(i)) {
                     // Check if this question's keywords appear in Dan's response
