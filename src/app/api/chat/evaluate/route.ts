@@ -32,6 +32,10 @@ interface QuestionScore {
 
 const EVALUATION_PROMPT = `You are evaluating a PM's debugging conversation. Review the entire chat history and score their performance against each question's rubric.
 
+EVALUATION PHILOSOPHY:
+The simulation truth (root cause) is the DESTINATION, but the questions' rubric items are the MAP.
+Grade the user primarily on their METHODOLOGY - how they approached the problem and used the rubric concepts - rather than whether they guessed the root cause perfectly.
+
 SCORING RULES:
 - For each question, check which rubric items the user addressed during the conversation
 - A rubric item is "addressed" if the user mentioned or demonstrated understanding of that concept at any point
@@ -41,6 +45,13 @@ SCORING RULES:
 - Do NOT penalize users for skipping follow-up questions - score based on their actual responses
 - Users moving to the next question is NOT "failing" - it's pacing themselves
 - Only give 0 points if the user truly provided NO relevant information for that topic
+
+METHODOLOGY FOCUS:
+- Did they ask clarifying questions before jumping to conclusions?
+- Did they consider multiple hypotheses?
+- Did they prioritize systematically?
+- Did they think about data validation?
+Credit good debugging PROCESS even if they didn't identify the exact root cause.
 
 OUTPUT FORMAT (JSON only, no markdown):
 {

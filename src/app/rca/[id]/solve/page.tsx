@@ -231,6 +231,7 @@ Share your reasoning and I'll give you feedback!`;
           userMessage,
           history: messages,
           problemContext: problem?.context || '',
+          aiContext: problem?.ai_context || '',  // Hidden simulation truth
           questions: questions.map(q => ({
             text: q.question_text,
             gold_standard_answer: q.gold_standard_answer,

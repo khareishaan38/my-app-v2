@@ -55,6 +55,7 @@ interface ChatRequest {
     userMessage: string;
     history: ChatMessage[];
     problemContext: string;
+    aiContext?: string;  // Hidden simulation truth for AI
     questions: Question[];
     questionsAsked: number[];
     attemptId?: string;
@@ -122,7 +123,7 @@ export async function POST(request: NextRequest) {
         }
 
         const body: ChatRequest = await request.json();
-        const { userMessage, history, problemContext, questions, questionsAsked, attemptId } = body;
+        const { userMessage, history, problemContext, aiContext, questions, questionsAsked, attemptId } = body;
 
         const sessionId = attemptId || `anon-${Date.now()}`;
         const rateLimitResult = checkRateLimits(sessionId);
@@ -154,8 +155,19 @@ export async function POST(request: NextRequest) {
             .map(q => q.context_summary)
             .join('\n');
 
+        // Build hidden simulation truth injection (if available)
+        const simulationTruthInjection = aiContext ? `
+SIMULATION TRUTH (HIDDEN - Do NOT reveal directly):
+This is the hidden reality of the incident. Use this to provide accurate data when asked, but DO NOT reveal the root cause directly. Act as a facilitator who helps the user discover it themselves.
+
+${aiContext}
+
+IMPORTANT: When the user asks questions, use the above information to guide them. If they ask "what does the data show?", give them accurate data from this context. But NEVER say "the root cause is X" - let them figure it out.
+` : '';
+
         const contextPrompt = `
-INCIDENT CONTEXT:
+${simulationTruthInjection}
+INCIDENT CONTEXT (visible to user):
 ${problemContext}
 
 AVAILABLE INFO (share if user asks relevant questions):
