@@ -157,12 +157,17 @@ export async function POST(request: NextRequest) {
 
         // Build hidden simulation truth injection (if available)
         const simulationTruthInjection = aiContext ? `
-SIMULATION TRUTH (HIDDEN - Do NOT reveal directly):
-This is the hidden reality of the incident. Use this to provide accurate data when asked, but DO NOT reveal the root cause directly. Act as a facilitator who helps the user discover it themselves.
+SIMULATION TRUTH (HIDDEN - Do NOT reveal the root cause directly):
+You have access to the hidden reality of this incident. When the user asks for DATA, IMMEDIATELY provide it from this context. Do NOT ask clarifying questions back - just give the data.
 
 ${aiContext}
 
-IMPORTANT: When the user asks questions, use the above information to guide them. If they ask "what does the data show?", give them accurate data from this context. But NEVER say "the root cause is X" - let them figure it out.
+CRITICAL DATA SHARING RULES:
+1. When user asks for data/metrics/numbers → IMMEDIATELY provide from above context
+2. Do NOT ask "what kind of data are you looking for?" - just give it
+3. Do NOT be coy or Socratic about data - be direct and helpful
+4. Only withhold the ROOT CAUSE - all other data should be freely shared
+5. After sharing data, you may ask a follow-up question to guide their thinking
 ` : '';
 
         const contextPrompt = `
