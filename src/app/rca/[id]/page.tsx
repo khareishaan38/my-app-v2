@@ -83,7 +83,28 @@ export default function ProblemContextPage({ params }: { params: Promise<{ id: s
               {problem.context}
             </div>
 
-            <div className="mt-10 flex gap-4">
+            {/* How It Works - Standard Instructions */}
+            <div className="mt-10 p-6 bg-indigo-50 border border-indigo-100 rounded-xl">
+              <h3 className="text-sm font-bold text-indigo-900 mb-4 flex items-center gap-2">
+                📋 How It Works
+              </h3>
+              <ul className="space-y-3 text-sm text-indigo-800">
+                <li className="flex items-start gap-3">
+                  <span className="font-bold text-indigo-600 mt-0.5">1.</span>
+                  <span><strong>Progress Dots</strong> — Watch the dots beside the timer to track which topics you've covered</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="font-bold text-indigo-600 mt-0.5">2.</span>
+                  <span><strong>Need Help?</strong> — Tell Dan you're ready to move on to the next question if you're stuck on a question</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="font-bold text-indigo-600 mt-0.5">3.</span>
+                  <span><strong>Submit When Ready</strong> — Once you want to go for evaluation, say <em>"I am done"</em> or <em>"Evaluate Me"</em> to submit</span>
+                </li>
+              </ul>
+            </div>
+
+            <div className="mt-8 flex gap-4">
               <button
                 onClick={handleStart}
                 className="bg-indigo-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-indigo-700 transition-all flex items-center gap-2 shadow-lg shadow-indigo-200"

@@ -39,8 +39,8 @@ const getDifficultyStyles = (difficulty: string) => {
 };
 
 export default function ProblemCard({ problem, attempt }: ProblemCardProps) {
-    const isCompleted = attempt?.status === 'evaluated';
-    const isInProgress = attempt?.status === 'in_progress' || attempt?.status === 'submitted';
+    const isCompleted = attempt?.status === 'evaluated' || attempt?.status === 'submitted';
+    const isInProgress = attempt?.status === 'in_progress';
 
     return (
         <div className="bg-white border border-gray-200 rounded-2xl p-6 hover:border-blue-400 hover:shadow-md transition-all">
