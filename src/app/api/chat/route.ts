@@ -198,18 +198,29 @@ ${userMessage}
         const moveOnPhrases = ['next question', 'move on', 'move to next', 'skip this', 'let\'s continue', 'continue to next'];
         const userWantsToMoveOn = moveOnPhrases.some(kw => userMessage.toLowerCase().includes(kw));
 
-        // Detect if Dan asked a new question (simple heuristic)
+        // Detect if Dan asked a new question (STRICT matching)
         // BUT skip this if user is done OR wants to move on - don't mark more questions
         let newQuestionsAsked = [...questionsAsked];
 
         if (!userSaysDone && !userWantsToMoveOn) {
-            // Only use keyword matching when user is NOT trying to wrap up or skip
+            // Only mark a question as asked if Dan actually asked it (not just used similar words)
             for (let i = 0; i < questions.length; i++) {
                 if (!questionsAsked.includes(i)) {
-                    // Check if this question's keywords appear in Dan's response
-                    const questionWords = questions[i].text.toLowerCase().split(' ').filter(w => w.length > 4);
-                    const matchCount = questionWords.filter(w => response.toLowerCase().includes(w)).length;
-                    if (matchCount >= 2) {
+                    const questionText = questions[i].text.toLowerCase();
+                    const responseLower = response.toLowerCase();
+
+                    // Extract key phrases from the question (first 40 chars or first sentence)
+                    const firstSentence = questionText.split(/[.?!]/)[0].trim();
+                    const shortQuestion = firstSentence.length > 15 ? firstSentence.substring(0, 40) : firstSentence;
+
+                    // Also check for specific diagnostic keywords unique to this question
+                    const uniqueKeywords = questionText.match(/\b(validate|verify|confirm|identify|prioritize|mitigation|root cause|metric|hypothesis|stakeholder|data|segment|deploy|rollback|monitor)\b/g) || [];
+                    const keywordMatchCount = uniqueKeywords.filter(kw => responseLower.includes(kw)).length;
+
+                    // Mark as asked ONLY if:
+                    // 1. Dan's response contains a significant portion of the question text, OR
+                    // 2. Dan's response contains 3+ unique diagnostic keywords from the question
+                    if (responseLower.includes(shortQuestion) || keywordMatchCount >= 3) {
                         newQuestionsAsked.push(i);
                         break; // Only mark one question per response
                     }

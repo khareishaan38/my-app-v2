@@ -28,13 +28,13 @@ export default function ChatMessage({ message }: ChatMessageProps) {
         >
             {/* Avatar */}
             <div className={`
-                w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0
-                ${isUser ? 'bg-indigo-600' : 'bg-slate-800'}
+                w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0 text-xl
+                ${isUser ? 'bg-indigo-600' : 'bg-gradient-to-br from-amber-400 to-orange-500'}
             `}>
                 {isUser ? (
                     <User size={20} className="text-white" />
                 ) : (
-                    <Bot size={20} className="text-white" />
+                    <span className="animate-bounce">👨‍💻</span>
                 )}
             </div>
 
