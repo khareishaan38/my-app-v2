@@ -210,31 +210,41 @@ ${userMessage}
         const moveOnPhrases = ['next question', 'move on', 'move to next', 'skip this', 'let\'s continue', 'continue to next'];
         const userWantsToMoveOn = moveOnPhrases.some(kw => userMessage.toLowerCase().includes(kw));
 
-        // Detect if Dan asked a new question (STRICT matching)
+        // Detect if Dan asked a new question (VERY STRICT matching)
         // BUT skip this if user is done OR wants to move on - don't mark more questions
         let newQuestionsAsked = [...questionsAsked];
 
         if (!userSaysDone && !userWantsToMoveOn) {
-            // Only mark a question as asked if Dan actually asked it (not just used similar words)
-            for (let i = 0; i < questions.length; i++) {
-                if (!questionsAsked.includes(i)) {
-                    const questionText = questions[i].text.toLowerCase();
-                    const responseLower = response.toLowerCase();
+            // Only mark a question as asked if Dan's response contains an actual QUESTION
+            // that closely matches one of the pending questions
 
-                    // Extract key phrases from the question (first 40 chars or first sentence)
-                    const firstSentence = questionText.split(/[.?!]/)[0].trim();
-                    const shortQuestion = firstSentence.length > 15 ? firstSentence.substring(0, 40) : firstSentence;
+            // First, check if Dan's response even contains a question (ends with ?)
+            const danAsksQuestion = response.includes('?');
 
-                    // Also check for specific diagnostic keywords unique to this question
-                    const uniqueKeywords = questionText.match(/\b(validate|verify|confirm|identify|prioritize|mitigation|root cause|metric|hypothesis|stakeholder|data|segment|deploy|rollback|monitor)\b/g) || [];
-                    const keywordMatchCount = uniqueKeywords.filter(kw => responseLower.includes(kw)).length;
+            if (danAsksQuestion) {
+                // Extract the last question from Dan's response
+                const sentences = response.split(/[.!?]+/).filter(s => s.trim());
+                const lastSentence = sentences[sentences.length - 1]?.toLowerCase().trim() || '';
 
-                    // Mark as asked ONLY if:
-                    // 1. Dan's response contains a significant portion of the question text, OR
-                    // 2. Dan's response contains 3+ unique diagnostic keywords from the question
-                    if (responseLower.includes(shortQuestion) || keywordMatchCount >= 3) {
-                        newQuestionsAsked.push(i);
-                        break; // Only mark one question per response
+                for (let i = 0; i < questions.length; i++) {
+                    if (!questionsAsked.includes(i)) {
+                        const questionText = questions[i].text.toLowerCase();
+
+                        // Extract key topic words from the question (nouns/verbs 6+ chars)
+                        const topicWords = questionText
+                            .split(/\s+/)
+                            .filter(w => w.length >= 6)
+                            .filter(w => !['would', 'should', 'which', 'about', 'could', 'their', 'there', 'where', 'these', 'those'].includes(w));
+
+                        // Count how many topic words appear in Dan's last question
+                        const matchCount = topicWords.filter(w => lastSentence.includes(w)).length;
+
+                        // Mark as asked ONLY if Dan's question contains 3+ topic words from the pending question
+                        // This ensures Dan is actually asking ABOUT this topic, not just mentioning keywords
+                        if (matchCount >= 3) {
+                            newQuestionsAsked.push(i);
+                            break; // Only mark one question per response
+                        }
                     }
                 }
             }
